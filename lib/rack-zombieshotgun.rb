@@ -17,6 +17,7 @@ module Rack
   #
   #   :agents         Toggle agent kills by passing false. Default is true.
   #   :directories    Toggle directory kills by passing false. Default is true.
+  #   :formats        Toggle format kills by passing false.  Defaults to true.
   class ZombieShotgun
     
     ZOMBIE_AGENTS = [
@@ -27,12 +28,15 @@ module Rack
 
     ZOMBIE_DIRS = ['_vti_bin','MSOffice','verify-VCNstrict','notified-VCNstrict'].to_set.freeze
     
+    ZOMBIE_FORMATS = ['cgi', 'aspx', 'asp', 'ico'].to_set.freeze
+    
     attr_reader :options, :request, :agent
     
     def initialize(app, options={})
       @app, @options = app, {
         :agents => true,
-        :directories => true
+        :directories => true,
+        :formats => true
       }.merge(options)
     end
     
@@ -50,7 +54,7 @@ module Rack
     end
 
     def zombie_attack?
-      zombie_dir_attack? || zombie_agent_attack?
+      zombie_dir_attack? || zombie_agent_attack? || zombie_format_attack?
     end
 
     def zombie_dir_attack?
@@ -60,6 +64,14 @@ module Rack
 
     def zombie_agent_attack?
       options[:agents] && agent && ZOMBIE_AGENTS.any? { |za| agent =~ za }
+    end
+    
+    def zombie_format_attack?
+      format = ::File.extname(request.path_info)
+      unless format.empty?
+        format = format[1, format.length-1]
+        options[:formats] && ZOMBIE_FORMATS.any? { |zf| zf == format }
+      end
     end
     
   end

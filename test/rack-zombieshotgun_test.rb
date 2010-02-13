@@ -61,7 +61,32 @@ class ZombieShotgunTest < Test::Unit::TestCase
 
   end
   
-  
+  context "With format" do
+    
+    should 'kill common attack formats' do
+      get '/real/path/home.aspx'
+      assert_head_not_found
+      get '/real/path/home.ico'
+      assert_head_not_found
+    end
+    
+    should 'not kill request if format not blocked' do
+      get '/real/path/home.js'
+      assert_response_ok
+    end
+    
+    should 'not kill request if no format is specified' do
+      get '/some/path'
+      assert_response_ok
+    end
+    
+    should 'not kill request if :formats option is turned off' do
+      app_with good_env, :formats => false
+      get '/home.aspx'
+      assert_response_ok
+    end
+    
+  end
   
 
   protected
